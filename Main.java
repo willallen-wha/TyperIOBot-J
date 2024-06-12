@@ -15,10 +15,10 @@ public class Main {
             //result in a uniform distribution of X length centered at X. For example,
             //setTypeSpeed(60) will create random waits between 30 and 90 ms (60ms wide
             //centered at 60)
-            virt.setTypeSpeed(65);
+            virt.setTypeSpeed(0);
             //Amount of time the bot takes between each action, i.e. each individual key
             //down and key up event. 0 recommended, but can be increased to avoid missed strokes.
-            virt.setAutoDelay(1);
+            virt.setAutoDelay(0);
             
             virt.initiate();
 
