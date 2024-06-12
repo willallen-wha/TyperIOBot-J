@@ -7,7 +7,7 @@ public class Main {
         try {
             //New robot object for virtual keyboard
             EnhancedRobot virt = new EnhancedRobot(nameOfFile);
-            //Make sure variables are set
+            //Make sure mapping of characters to keycodes is set
             virt.ensureSet();
             //Set specific variables:
             //The default time, in miliseconds, between each keypress. Setting to 0
