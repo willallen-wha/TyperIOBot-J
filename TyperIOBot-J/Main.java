@@ -10,17 +10,11 @@ public class Main {
          * will result in a uniform distribution of X length centered at X. E.G.:
          * 60 will create random waits between 30 and 90 ms (60ms wide centered at 60)
         */
-        int typingSpeed = 20;
-        /*
-         * The amount of time, in milliseconds, between every action the robot takes.
-         * This includes alt-tabs, keydown vs keyup events, everything. The recommended
-         * value is 0, but can be increased for an even slower robot.
-         */
-        int robotDelay = 0;
+        int typingSpeed = 0;
 
         try {
             //New robot object for virtual keyboard
-            EnhancedRobot virt = new EnhancedRobot(nameOfFile, typingSpeed, robotDelay);
+            EnhancedRobot virt = new EnhancedRobot(nameOfFile, typingSpeed);
             
             virt.initiate();
 

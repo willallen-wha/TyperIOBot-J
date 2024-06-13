@@ -17,9 +17,9 @@ public class EnhancedRobot extends Robot{
 
     // final Rectangle screen;
     final String dumpFileName;
-    private int typeSpeedConst;
+    private final int typeSpeedConst;
 
-    public EnhancedRobot(String dump, int speed, int delay) throws AWTException {
+    public EnhancedRobot(String dump, int speed) throws AWTException {
         super();
         // int screenWidth = Toolkit.getDefaultToolkit().getScreenSize().width;
         // int screenHeight = Toolkit.getDefaultToolkit().getScreenSize().height;
@@ -28,8 +28,7 @@ public class EnhancedRobot extends Robot{
         dumpFileName = dump;
         // Speed between letters during typing
         typeSpeedConst = speed;
-        // Speed between all actions including alt-tabs, etc.
-        setAutoDelay(delay);
+        setAutoDelay(0);
         // Initialize the decoder with a blank keycode request
         Decoder.getKeycode(' ');
     }
@@ -99,7 +98,8 @@ public class EnhancedRobot extends Robot{
         keyPress(KeyEvent.VK_ALT);
         while(times > 0) {
             keyType(KeyEvent.VK_TAB);
-            delay(10);
+            delay(20);
+            // System.out.println("tab");
             times--;
         }
         keyRelease(KeyEvent.VK_ALT);
@@ -139,6 +139,8 @@ public class EnhancedRobot extends Robot{
     // }
 
     public void initiate() throws FileNotFoundException {
+        // Set delay to be large to avoid missed navigation keystrokes
+        setAutoDelay(10);
         // Wait a seconds to allow mouse to be placed
         delay(1000);
         // Now, right click and rip the HTML
@@ -182,6 +184,8 @@ public class EnhancedRobot extends Robot{
         delay(1500);
         mouseClick(InputEvent.getMaskForButton(1));
         delay(10);
+        // Now that navigation is done, remove delay
+        setAutoDelay(0);
         // Type a space, wait 3 seconds for the round to start, then let er rip
         keyType(' ');
         // If you're trying to do anything other than the solo text snippets,
