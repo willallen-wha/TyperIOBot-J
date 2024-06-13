@@ -2,23 +2,57 @@ import java.awt.AWTException;
 import java.awt.Robot;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-// import java.awt.image.BufferedImage;
-// import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.HashMap;
+// import java.awt.image.BufferedImage;
+// import java.io.File;
 // import javax.imageio.ImageIO;
 // import java.awt.Rectangle;
 // import java.awt.Toolkit;
 // import java.awt.MouseInfo;
 
+/**
+ * Public class to implement specific functions using the {@link java.awt.Robot}
+ * class as a baseline. Specifically implements certain features such as alt-tabbing,
+ * converting strings into a series of keystrokes, etc. Requires a location to
+ * get raw HTML text from and has customizable delay to make the TAS less obvious.
+ * <p>
+ * Also self-contains a custom Decoder class, which takes a character and decodes
+ * it into a series of keystrokes to tpye the character. Supports most keys which
+ * tpye a character on a keyboard. Additionally, checks if character would require
+ * shift to type, such as a capital letter or the '^' symbol typed with shift and 6.
+ * Decoder is, in fact, just a hashmap between characters and keystrokes with a
+ * couple added features.
+ * <p>
+ * The two main errors you would expect to see are {@link AWTException}, which is
+ * inherited from {@link java.awt.Robot}, and {@link FileNotFoundException}, which
+ * it recieves from its connection to the {@link RawParser} class.
+ * 
+ * @see RawParser
+ * @see java.awt.Robot
+ */
 public class EnhancedRobot extends Robot{
 
     // final Rectangle screen;
     final String dumpFileName;
     private final int typeSpeedConst;
 
+    /**
+     * Constructor for EnhancedRobot which requires a delay speed (in ms) and
+     * text dump location. The delay speed can either be 0 or a positive integer.
+     * If not 0, the delay speed causes the EnhancedRobot to take a break with
+     * length 50-150% of the specified delay to make TASing less obvious. If a
+     * delay speed of 50 is specified, the wait between events will be from
+     * 25 to 75 ms.
+     * 
+     * @param dump - Path to file where HTML rip is dumped
+     * @param speed - Delay, in ms, to use as base for random delay speed
+     * @throws AWTException Throws inherited from robot -  if the platform
+     * configuration does not allow low-level input control. This exception
+     * is always thrown when GraphicsEnvironment.isHeadless() returns true
+     */
     public EnhancedRobot(String dump, int speed) throws AWTException {
         super();
         // int screenWidth = Toolkit.getDefaultToolkit().getScreenSize().width;
@@ -33,43 +67,72 @@ public class EnhancedRobot extends Robot{
         Decoder.getKeycode(' ');
     }
 
-    //Press and release a key instantly
+    /**
+     * Types a keycode by pressing and releasing a key instantly.
+     * 
+     * @param keycode - Keycode for key to be typed
+     */
     public void keyType(int keycode) {
         keyPress(keycode);
         keyRelease(keycode);
     }
 
+    /**
+     * Types a character. First checks if shift is needed, such as capital
+     * letters or special characters above numkeys like '$' or '*'. If so,
+     * presses shift, decodes the character into a keycode to press and release
+     * the appropriate key, then releases shift.
+     * 
+     * @param c - Character to be typed
+     */
     public void keyType(char c) {
-        //If it's uppercase or a special character press shift then type
+        // If it's uppercase or a special character press shift then type
         boolean needShiftPressed = Decoder.needsShift(c);
         if(needShiftPressed) {
             keyPress(KeyEvent.VK_SHIFT);
         }
 
-        //Type the char
+        // Type the char
         keyType(Decoder.getKeycode(c));
 
+        // Release shift if needed
         if(needShiftPressed) {
             keyRelease(KeyEvent.VK_SHIFT);
         }
     }
 
+    /**
+     * Clicks a button on the mouse by pressing and releasing it.
+     * 
+     * @param buttons - Keycode for button to be pressed (right click, etc.)
+     */
     public void mouseClick(int buttons) {
         mousePress(buttons);
         mouseRelease(buttons);
     }
 
-    //Types a string input into the virtual keyboard
+    /**
+     * Types a string on the virtual keyboard using repeated calls to
+     * the keyType function after splitting the string into individual
+     * characters.
+     * 
+     * @param toType - The string to type on the vitrual keyboard
+     */
     public void typeString(String toType) {
+        // Split the string into characters
         char[] keys = toType.toCharArray();
+        // Send each one to keyType individually
         for(char key: keys) {
             customDelay();
             keyType(key);
         }
     }
 
-    // Custom delay function to allow random time between letter presses
-    // This theoretically makes the botting less obvious.
+    /**
+     * Delays by a custom time between each keystroke when typing a string.
+     * In theory, this makes TASing less obvious, but can be bypassed by
+     * setting typeSpeedConst to 0.
+     */
     public void customDelay() {
         // If no delay is requested simply continue
         if(typeSpeedConst == 0) {
@@ -85,7 +148,10 @@ public class EnhancedRobot extends Robot{
         System.out.println("Delayed for " + (typeSpeedConst + adjust) + " milliseconds.");
     }
 
-    //Simulates an alt-tab action
+    /**
+     * Simulate alt-tab action by pressing alt, pressing and releasing
+     * tab, then releasing alt.
+     */
     public void altTab() {
         keyPress(KeyEvent.VK_ALT);
         keyPress(KeyEvent.VK_TAB);
@@ -93,17 +159,107 @@ public class EnhancedRobot extends Robot{
         keyRelease(KeyEvent.VK_ALT);
     }
 
-    //Simulates multiple alt-tab actions
-    public void altTab(int times) {
-        keyPress(KeyEvent.VK_ALT);
-        while(times > 0) {
-            keyType(KeyEvent.VK_TAB);
-            delay(20);
-            // System.out.println("tab");
-            times--;
-        }
-        keyRelease(KeyEvent.VK_ALT);
+    /**
+     * Main driving function of EnhancedRobot. Completes the full action set
+     * required to obtain HTML section from Typer.io, save to the dump file,
+     * parse the HTML, and then type it out in its entirety. Intentional
+     * delay is added at the beginning to prevent moving too fast and missing
+     * navigation strokes like alt-tabs or saves.
+     * 
+     * @throws FileNotFoundException If the filepath specified in the constructor
+     * is not found, throws as no text can be parsed or typed.
+     */
+    public void initiate() throws FileNotFoundException {
+        // Set delay to be large to avoid missed navigation keystrokes
+        setAutoDelay(10);
+        // Wait a seconds to allow mouse to be placed
+        delay(1000);
+        // Now, right click and rip the HTML
+        // Runs the series of keystrokes right-click, C, C,
+        // Enter, Enter, Enter to navigate the right click menu to
+        // "Copy Element" option and get just Gameboard_container data
+        mouseClick(InputEvent.getMaskForButton(3));
+        delay(60);
+        keyType(KeyEvent.VK_C);
+        delay(15);
+        keyType(KeyEvent.VK_C);
+        delay(15);
+        keyType(KeyEvent.VK_ENTER);
+        delay(15);
+        keyType(KeyEvent.VK_ENTER);
+        //Extra enter just in case
+        delay(15);
+        keyType(KeyEvent.VK_ENTER);
+        delay(15);
+        // Now that we've got it ripped, put it in the text file
+        // Alt-tab into the open text file which should be "logically" behind
+        // two alt-tabs: the first is whatever is running the code, the second
+        // reaches the text file
+        altTab();
+        altTab();
+        delay(25);
+        // Now paste and save by selecting all, backspacing, pasting,
+        // and saving the text file.
+        all();
+        delay(25);
+        keyType(KeyEvent.VK_BACK_SPACE);
+        delay(25);
+        paste();
+        delay(25);
+        save();
+        delay(25);
+        // Now that it's been saved, parse that HTML and refocus the game window
+        altTab();
+        String toType = RawParser.parseRaw(dumpFileName).trim();
+        System.out.println("String to be typed: " + toType);
+        // Let the mouse get situated then get ready to go
+        delay(1500);
+        mouseClick(InputEvent.getMaskForButton(1));
+        delay(10);
+        // Now that navigation is done, remove delay
+        setAutoDelay(0);
+        // Type a space, wait 3 seconds for the round to start, then let er rip
+        keyType(' ');
+        // If you're trying to do anything other than the solo text snippets,
+        // change this number to be the right length.
+        delay(4500);
+        typeString(toType);
     }
+
+    /**
+     * Function to simulate pasting by pressing down control, pressing
+     * V, then lifting control.
+     */
+    public void paste() {
+        keyPress(KeyEvent.VK_CONTROL);
+        keyType(KeyEvent.VK_V);
+        keyRelease(KeyEvent.VK_CONTROL);
+    }
+
+    /**
+     * Function to simulate saving by pressing down control, pressing
+     * s, then lifting control.
+     */
+    public void save() {
+        keyPress(KeyEvent.VK_CONTROL);
+        keyType(KeyEvent.VK_S);
+        keyRelease(KeyEvent.VK_CONTROL);
+    }
+
+    /**
+     * Function to simulate selecting all by pressing down control,
+     * pressing S, then lifting control.
+     */
+    public void all() {
+        keyPress(KeyEvent.VK_CONTROL);
+        keyType(KeyEvent.VK_A);
+        keyRelease(KeyEvent.VK_CONTROL);
+    }
+
+    // ---------------------------- UNUSED CODE ----------------------------
+    // This code is unused. It formed the basis of attempting to screen capture
+    // and pass to text detection, but this approach was abandoned for a Python
+    // approach.
 
     // public BufferedImage takeScreenshot() {
     //     BufferedImage screenshot = createScreenCapture(screen);
@@ -137,83 +293,6 @@ public class EnhancedRobot extends Robot{
     // public int getMouseY() {
     //     return (int) MouseInfo.getPointerInfo().getLocation().getY();
     // }
-
-    public void initiate() throws FileNotFoundException {
-        // Set delay to be large to avoid missed navigation keystrokes
-        setAutoDelay(10);
-        // Wait a seconds to allow mouse to be placed
-        delay(1000);
-        // Now, right click and rip the HTML
-        // Runs the series of keystrokes right-click, C, C,
-        // Enter, Enter, Enter to navigate the right click menu to
-        // "Copy Element" option and get just Gameboard_container data
-        mouseClick(InputEvent.getMaskForButton(3));
-        delay(60);
-        keyType(KeyEvent.VK_C);
-        delay(15);
-        keyType(KeyEvent.VK_C);
-        delay(15);
-        keyType(KeyEvent.VK_ENTER);
-        delay(15);
-        keyType(KeyEvent.VK_ENTER);
-        //Extra enter just in case
-        delay(15);
-        keyType(KeyEvent.VK_ENTER);
-        delay(15);
-        // Now that we've got it ripped, put it in the text file
-        // Alt-tab into the open text file which should be "logically" behind
-        // two alt-tabs: the first is whatever is running the code, the second
-        // reaches the text file
-        altTab(2);
-        delay(25);
-        // Now paste and save by selecting all, backspacing, pasting,
-        // and saving the text file.
-        all();
-        delay(25);
-        keyType(KeyEvent.VK_BACK_SPACE);
-        delay(25);
-        paste();
-        delay(25);
-        save();
-        delay(25);
-        // Now that it's been saved, parse that HTML and refocus the game window
-        altTab(1);
-        String toType = RawParser.parseRaw(dumpFileName).trim();
-        System.out.println("String to be typed: " + toType);
-        // Let the mouse get situated then get ready to go
-        delay(1500);
-        mouseClick(InputEvent.getMaskForButton(1));
-        delay(10);
-        // Now that navigation is done, remove delay
-        setAutoDelay(0);
-        // Type a space, wait 3 seconds for the round to start, then let er rip
-        keyType(' ');
-        // If you're trying to do anything other than the solo text snippets,
-        // change this number to be the right length.
-        delay(4500);
-        typeString(toType);
-    }
-
-    // Shorthand function for pressing control and V to paste
-    public void paste() {
-        keyPress(KeyEvent.VK_CONTROL);
-        keyType(KeyEvent.VK_V);
-        keyRelease(KeyEvent.VK_CONTROL);
-    }
-
-    // Shorthand function for pressing control and S to save
-    public void save() {
-        keyPress(KeyEvent.VK_CONTROL);
-        keyType(KeyEvent.VK_S);
-        keyRelease(KeyEvent.VK_CONTROL);
-    }
-
-    // Shorthand function for pressing control and A to select all
-    public void all() {
-        keyPress(KeyEvent.VK_CONTROL);
-        keyType(KeyEvent.VK_A);
-        keyRelease(KeyEvent.VK_CONTROL);
-    }
 
 }
 
