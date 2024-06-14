@@ -33,7 +33,7 @@ There are comments within the code explaining the expected workflow, but the gen
     * Chrome window containing Typer.io
     * `raw.txt`
     * The window order when alt-tabbing should look like this:
-    ![img](.Assets/taborder)
+    ![img](.Assets/taborder.png)
 5. Run the program
     * **Run** the file `Main.java`
     * **Alt-tab** into the Typer.io window, and click the `Gameboard_container` div, keeping your mouse over the div.
@@ -45,7 +45,7 @@ There are comments within the code explaining the expected workflow, but the gen
     * If the wrong string is being typed or if you want to ensure the typing is complete, **open a new chrome tab using the mouse** (*not* control+t), and wait until the string is done typing.
 
 All in all, the process looks like this:
-![gif](.Assets/runex)
+![gif](.Assets/runex.gif)
 
 ## Customizatoins
 
