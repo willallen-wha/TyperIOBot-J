@@ -1,3 +1,5 @@
+package TyperIOBot_J;
+
 public class Main {
     
     public static void main(String[] args) {

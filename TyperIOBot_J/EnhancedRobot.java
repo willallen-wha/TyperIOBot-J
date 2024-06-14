@@ -1,11 +1,13 @@
+package TyperIOBot_J;
+
 import java.awt.AWTException;
 import java.awt.Robot;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.HashMap;
+import java.util.HashSet;
 // import java.awt.image.BufferedImage;
 // import java.io.File;
 // import javax.imageio.ImageIO;
@@ -296,23 +298,44 @@ public class EnhancedRobot extends Robot{
 
 }
 
+/**
+ * Private class to act as a decoder of keycodes. Has list of all expected
+ * characters to be typed in a HashMap, where characters map to their respective
+ * keycodes forfaster lookups and therefore less lost time while typing.
+ */
 class Decoder {
+    // Array of all characters which require 'Shift' to be pressed in order
+    // to be typed
     final static Character[] specialCharsArray =    {'~', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', 'Q', 'W', 'E',
                                                      'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', '|', 'A', 'S', 'D', 'F', 'G', 'H',
                                                      'J', 'K', 'L', ':', '\"', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?'};
+    // Array of all characters which do not require 'Shift' to be pressed
+    // in order to be typed.
     final static Character[] nonSpecialCharsArray = {'`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 'q', 'w', 'e',
                                                      'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\\', 'a', 's', 'd', 'f', 'g', 'h',
                                                      'j', 'k', 'l', ';', '\'', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', ' ', '\n'};
+    // Hashsets containing all special and nonspecial characters
     final static HashSet<Character> specialChars = new HashSet<>(Arrays.asList(specialCharsArray));
     final static HashSet<Character> nonSpecialChars = new HashSet<>(Arrays.asList(nonSpecialCharsArray));
 
+    // Hash maps which map nonspecial characters to keycodes, and special
+    // characters to nonspecial characters
     static HashMap<Character, Integer> keyCodes;
     static HashMap<Character, Character> specialToNon;
 
+    /**
+     * Function which takes as input any typeable character 'c' and converts it 
+     * to a keyCode to be typed.
+     * 
+     * @param c - The character to be typed
+     * @return the value of the keycode to type that character
+     */
     public static int getKeycode(char c) {
+        // Ensure the hashmaps have been set up
         if(keyCodes == null) {
             setupKeyCodes();
         }
+        // Get the keycode and return it
         return keyCodes.get(decode(c));
     }
 

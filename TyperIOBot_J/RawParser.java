@@ -1,3 +1,5 @@
+package TyperIOBot_J;
+
 import java.util.Scanner;
 import java.util.regex.Pattern;
 import java.io.File;
