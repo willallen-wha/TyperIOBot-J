@@ -186,8 +186,7 @@ public class EnhancedRobot extends Robot{
         // Alt-tab into the open text file which should be "logically" behind
         // two alt-tabs: the first is whatever is running the code, the second
         // reaches the text file
-        altTab();
-        altTab();
+        altTab(2);
         delay(25);
         // Now paste and save by selecting all, backspacing, pasting,
         // and saving the text file.
@@ -225,6 +224,22 @@ public class EnhancedRobot extends Robot{
         keyPress(KeyEvent.VK_ALT);
         keyPress(KeyEvent.VK_TAB);
         keyRelease(KeyEvent.VK_TAB);
+        keyRelease(KeyEvent.VK_ALT);
+    }
+
+    /**
+     * Simulates multiple alt-tab actions by pressing alt, then pressing
+     * and releasing tab the number of times required to reach a window
+     * that many tabs away.
+     * 
+     * @param numWindows - The number of times to press tab before releasing alt
+     */
+    public void altTab(int numWindows) {
+        keyPress(KeyEvent.VK_ALT);
+        for(int i = 0; i < numWindows; i++) {
+            keyPress(KeyEvent.VK_TAB);
+            keyRelease(KeyEvent.VK_TAB);
+        }
         keyRelease(KeyEvent.VK_ALT);
     }
 
