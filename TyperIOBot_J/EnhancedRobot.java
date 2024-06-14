@@ -151,17 +151,6 @@ public class EnhancedRobot extends Robot{
     }
 
     /**
-     * Simulate alt-tab action by pressing alt, pressing and releasing
-     * tab, then releasing alt.
-     */
-    public void altTab() {
-        keyPress(KeyEvent.VK_ALT);
-        keyPress(KeyEvent.VK_TAB);
-        keyRelease(KeyEvent.VK_TAB);
-        keyRelease(KeyEvent.VK_ALT);
-    }
-
-    /**
      * Main driving function of EnhancedRobot. Completes the full action set
      * required to obtain HTML section from Typer.io, save to the dump file,
      * parse the HTML, and then type it out in its entirety. Intentional
@@ -226,6 +215,17 @@ public class EnhancedRobot extends Robot{
         // change this number to be the right length.
         delay(4500);
         typeString(toType);
+    }
+
+    /**
+     * Simulate alt-tab action by pressing alt, pressing and releasing
+     * tab, then releasing alt.
+     */
+    public void altTab() {
+        keyPress(KeyEvent.VK_ALT);
+        keyPress(KeyEvent.VK_TAB);
+        keyRelease(KeyEvent.VK_TAB);
+        keyRelease(KeyEvent.VK_ALT);
     }
 
     /**
@@ -339,6 +339,11 @@ class Decoder {
         return keyCodes.get(decode(c));
     }
 
+    /**
+     * Sets up the keycodes hash map. Maps all non-special characters to the
+     * keycode which types them on the keyboard. Should only be run once
+     * per program execution.
+     */
     private static void setupKeyCodes() {
         keyCodes = new HashMap<>();
         keyCodes.put('`', KeyEvent.VK_BACK_QUOTE);
@@ -392,6 +397,11 @@ class Decoder {
         keyCodes.put(' ', KeyEvent.VK_SPACE);
     }
 
+    /**
+     * Sets up the decoding from special characters to non-special characters.
+     * Matches each character which requires shift with the un-shifted key to
+     * get that character - 'a' for 'A' or '4' for '$' for example.
+     */
     private static void setupDecode() {
         specialToNon = new HashMap<>();
         for(int i = 0; i < specialCharsArray.length; i++) {
@@ -399,6 +409,15 @@ class Decoder {
         }
     }
 
+    /**
+     * Takes a character c and transforms it to the actual key to be pressed.
+     * Specifically, checks if the requested character is in the special characters
+     * hash, and if so returns the un-shifted character to be typed. Otherwise,
+     * returns the character unmodified.
+     * 
+     * @param c - The character to be decoded
+     * @return Character of type char to be typed on the keyboard.
+     */
     private static char decode(char c) {
         if(specialToNon == null) setupDecode();
         if(nonSpecialChars.contains(c)) {
@@ -409,6 +428,13 @@ class Decoder {
         }
     }
 
+    /**
+     * Checks if a character requires shift to be typed on a keyboard, such as
+     * a capital letter or the percent symbol.
+     * 
+     * @param c - The character to be typed
+     * @return True if shift is required, else false.
+     */
     public static boolean needsShift(char c) {
         return specialChars.contains(c);
     }
