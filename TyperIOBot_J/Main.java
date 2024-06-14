@@ -10,13 +10,14 @@ public class Main {
          * Base time, in miliseconds, between each keypress before randomization. 
          * Setting to 0 results in no delay between keypresses, any number higher
          * will result in a uniform distribution of X length centered at X. E.G.:
-         * 60 will create random waits between 30 and 90 ms (60ms wide centered at 60)
+         * 60 will create random waits between 30 and 90 ms (60ms wide centered at
+         * 60)
         */
-        int typingSpeed = 0;
+        int typingDelay = 0;
 
         try {
             //New robot object for virtual keyboard
-            EnhancedRobot virt = new EnhancedRobot(nameOfFile, typingSpeed);
+            EnhancedRobot virt = new EnhancedRobot(nameOfFile, typingDelay);
             
             virt.initiate();
 
