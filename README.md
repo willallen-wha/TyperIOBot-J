@@ -3,6 +3,8 @@ TyperIOBot
 
 Java implementation of a "TAS" for typer.io. Relies on current (as of 06/15/24) predictable form in which typer.io delivers web content in a `Gameboard_container__DtBpp` div. Using the inspect tool in Chrome, simulates copying the content to a predifined text file, then parsing the HTML into words and passing the necessary keystrokes to a virtual keyboard using a modified version of the `java.awt.Robot` class.
 
+**This project is considered complete.** Initially, image recognition to avoid the need to use right clicking and the inspect tool was intended, but this approach was abandoned. Instead, [the python version is being developed](https://github.com/willallen-wha/TyperIOBot-P).
+
 ## Getting it running
 
 ### Cloning repo & dependencies
